@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三年級下學期識字複習遊戲</title>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes monster {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+        }
+        .animate-monster { animation: monster 2s infinite ease-in-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+        
+        body {
+            background-color: #f1f5f9;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const WORD_DATA = [
+            { char: "慶", pinyin: "ㄑㄧㄥˋ", context: "「　」祝" },
+            { char: "描", pinyin: "ㄇㄧㄠˊ", context: "「　」寫" },
+            { char: "目", pinyin: "ㄇㄨˋ", context: "「　」標" },
+            { char: "程", pinyin: "ㄔㄥˊ", context: "工「　」" },
+            { char: "結", pinyin: "ㄐㄧㄝˊ", context: "「　」果" },
+            { char: "資", pinyin: "ㄗ", context: "「　」料" },
+            { char: "影", pinyin: "ㄧㄥˇ", context: "「　」響" },
+            { char: "周", pinyin: "ㄓㄡ", context: "「　」末" },
+            { char: "例", pinyin: "ㄌㄧˋ", context: "「　」子" },
+            { char: "產", pinyin: "ㄔㄢˇ", context: "「　」品" },
+            { char: "券", pinyin: "ㄑㄩㄢˋ", context: "獎「　」" },
+            { char: "包", pinyin: "ㄅㄠ", context: "「　」裝" },
+            { char: "類", pinyin: "ㄌㄟˋ", context: "「　」型" },
+            { char: "技", pinyin: "ㄐㄧˋ", context: "「　」術" },
+            { char: "敦", pinyin: "ㄉㄨㄣ", context: "「　」厚" },
+            { char: "爾", pinyin: "ㄦˇ", context: "偶「　」" },
+            { char: "擁", pinyin: "ㄩㄥˇ", context: "「　」擠" },
+            { char: "擠", pinyin: "ㄐㄧˇ", context: "「　」滿" },
+            { char: "市", pinyin: "ㄕˋ", context: "「　」場" },
+            { char: "倫", pinyin: "ㄌㄨㄣˊ", context: "「　」敦" },
+            { char: "決", pinyin: "ㄐㄩㄝˊ", context: "「　」定" },
+            { char: "糾", pinyin: "ㄐㄧㄡ", context: "「　」正" },
+            { char: "紛", pinyin: "ㄈㄣ", context: "糾「　」" },
+            { char: "律", pinyin: "ㄌㄩˋ", context: "法「　」" },
+            { char: "改", pinyin: "ㄍㄞˇ", context: "「　」善" },
+            { char: "挖", pinyin: "ㄨㄚ", context: "「　」土" },
+            { char: "設", pinyin: "ㄕㄜˋ", context: "「　」計" },
+            { char: "議", pinyin: "ㄧˋ", context: "會「　」" },
+            { char: "員", pinyin: "ㄩㄢˊ", context: "「　」工" },
+            { char: "付", pinyin: "ㄈㄨˋ", context: "「　」費" },
+            { char: "費", pinyin: "ㄈㄟˋ", context: "付「　」" },
+            { char: "建", pinyin: "ㄐㄧㄢˋ", context: "「　」築" },
+            { char: "齒", pinyin: "ㄔˇ", context: "牙「　」" },
+            { char: "鋸", pinyin: "ㄐㄩˋ", context: "「　」子" },
+            { char: "匠", pinyin: "ㄐㄧㄤˋ", context: "木「　」" },
+            { char: "祖", pinyin: "ㄗㄨˇ", context: "「　」先" },
+            { char: "宮", pinyin: "ㄍㄨㄥ", context: "「　」殿" },
+            { char: "惱", pinyin: "ㄋㄠˇ", context: "煩「　」" },
+            { char: "便", pinyin: "ㄅㄧㄢˋ", context: "「　」利" },
+            { char: "解", pinyin: "ㄐㄧㄝˇ", context: "「　」答" },
+            { char: "斧", pinyin: "ㄈㄨˇ", context: "「　」頭" },
+            { char: "割", pinyin: "ㄍㄜ", context: "「　」草" },
+            { char: "鋒", pinyin: "ㄈㄥ", context: "「　」利" },
+            { char: "速", pinyin: "ㄙㄨˋ", context: "「　」度" },
+            { char: "善", pinyin: "ㄕㄢˋ", context: "「　」良" },
+            { char: "察", pinyin: "ㄔㄚˊ", context: "觀「　」" },
+            { char: "考", pinyin: "ㄎㄠˇ", context: "「　」試" },
+            { char: "尺", pinyin: "ㄔˇ", context: "「　」寸" },
+            { char: "雀", pinyin: "ㄑㄩㄝˋ", context: "麻「　」" },
+            { char: "魔", pinyin: "ㄇㄛˊ", context: "「　」法" },
+            { char: "號", pinyin: "ㄏㄠˋ", context: "編「　」" },
+            { char: "髮", pinyin: "ㄈㄚˇ", context: "頭「　」" },
+            { char: "鏡", pinyin: "ㄐㄧㄥˋ", context: "「　」子" },
+            { char: "架", pinyin: "ㄐㄧㄚˋ", context: "「　」子" },
+            { char: "拾", pinyin: "ㄕˊ", context: "「　」起" },
+            { char: "區", pinyin: "ㄑㄩ", context: "「　」域" },
+            { char: "吵", pinyin: "ㄔㄠˇ", context: "「　」鬧" },
+            { char: "麻", pinyin: "ㄇㄚˊ", context: "「　」煩" },
+            { char: "腦", pinyin: "ㄋㄠˇ", context: "「　」袋" },
+            { char: "電", pinyin: "ㄉㄧㄢˋ", context: "「　」腦" },
+            { char: "展", pinyin: "ㄓㄢˇ", context: "「　」覽" },
+            { char: "術", pinyin: "ㄕㄨˋ", context: "「　」語" },
+            { char: "助", pinyin: "ㄓㄨˋ", context: "「　」手" },
+            { char: "製", pinyin: "ㄓˋ", context: "「　」作" },
+            { char: "椅", pinyin: "ㄧˇ", context: "「　」子" },
+            { char: "披", pinyin: "ㄆㄧ", context: "「　」風" },
+            { char: "紗", pinyin: "ㄕㄚ", context: "「　」布" },
+            { char: "順", pinyin: "ㄕㄨㄣˋ", context: "「　」利" },
+            { char: "垂", pinyin: "ㄔㄨㄟˊ", context: "「　」下" },
+            { char: "股", pinyin: "ㄍㄨˇ", context: "「　」份" },
+            { char: "涼", pinyin: "ㄌㄧㄤˊ", context: "「　」爽" },
+            { char: "覺", pinyin: "ㄐㄩㄝˊ", context: "「　」得" },
+            { char: "舒", pinyin: "ㄕㄨ", context: "「　」服" },
+            { char: "味", pinyin: "ㄨㄟˋ", context: "「　」道" },
+            { char: "軟", pinyin: "ㄖㄨㄢˇ", context: "「　」弱" },
+            { char: "踩", pinyin: "ㄘㄞˇ", context: "「　」踏" },
+            { char: "陷", pinyin: "ㄒㄧㄢˋ", context: "「　」阱" },
+            { char: "連", pinyin: "ㄌㄧㄢˊ", context: "「　」接" },
+            { char: "摺", pinyin: "ㄓㄜˊ", context: "「　」疊" },
+            { char: "燦", pinyin: "ㄘㄢˋ", context: "「　」爛" },
+            { char: "鵑", pinyin: "ㄐㄩㄢ", context: "杜「　」" },
+            { char: "豔", pinyin: "ㄧㄢˋ", context: "「　」麗" },
+            { char: "願", pinyin: "ㄩㄢˋ", context: "「　」望" },
+            { char: "晨", pinyin: "ㄔㄣˊ", context: "「　」曦" },
+            { char: "苗", pinyin: "ㄇㄧㄠˊ", context: "「　」兒" },
+            { char: "徐", pinyin: "ㄒㄩˊ", context: "「　」徐" },
+            { char: "嫩", pinyin: "ㄋㄣˋ", context: "「　」葉" },
+            { char: "築", pinyin: "ㄓㄨˊ", context: "「　」起" },
+            { char: "巢", pinyin: "ㄔㄠˊ", context: "「　」穴" },
+            { char: "虔", pinyin: "ㄑㄧㄢˊ", context: "「　」誠" },
+            { char: "誠", pinyin: "ㄔㄥˊ", context: "「　」實" },
+            { char: "爛", pinyin: "ㄌㄢˋ", context: "「　」漫" },
+            { char: "杜", pinyin: "ㄉㄨˋ", context: "「　」鵑" },
+            { char: "鮮", pinyin: "ㄒㄧㄢ", context: "「　」花" },
+            { char: "耀", pinyin: "ㄧㄠˋ", context: "「　」眼" },
+            { char: "翔", pinyin: "ㄒㄧㄤˊ", context: "翱「　」" }
+        ];
+
+        const HeroSprite = () => (
+            <div className="relative w-16 h-16 flex items-center justify-center">
+                <div className="absolute inset-0 bg-sky-200 rounded-full blur-lg opacity-40 animate-pulse"></div>
+                <div className="w-12 h-12 bg-white rounded-full border-4 border-sky-500 relative flex items-center justify-center shadow-lg">
+                    <div className="flex gap-2">
+                        <div className="w-2 h-2 bg-slate-800 rounded-full"></div>
+                        <div className="w-2 h-2 bg-slate-800 rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const MonsterSprite = ({ type }) => {
+            const colors = ["bg-emerald-400 border-emerald-600", "bg-indigo-400 border-indigo-600", "bg-rose-400 border-rose-600"];
+            const iconNames = ["smile", "ghost", "skull"];
+            return (
+                <div className="relative w-20 h-20 flex flex-col items-center justify-center animate-monster">
+                    <div className={`w-14 h-14 ${colors[type - 1]} rounded-2xl border-4 flex items-center justify-center shadow-xl`}>
+                        <Icon name={iconNames[type - 1]} size={32} className="text-white" />
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [gameState, setGameState] = useState('start');
+            const [worldLevel, setWorldLevel] = useState(1);
+            const [player, setPlayer] = useState({
+                hp: 100, maxHp: 100, gold: 0, level: 1, expCount: 0, potions: 1, pos: { x: 0, y: 0 }
+            });
+            const [currentMonster, setCurrentMonster] = useState(null);
+            const [quiz, setQuiz] = useState(null);
+            const [battleMsg, setBattleMsg] = useState('');
+            const [showLevelUp, setShowLevelUp] = useState(false);
+
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, [gameState, showLevelUp]);
+
+            const mapSize = 6;
+            const worldMap = useMemo(() => {
+                const m = Array(mapSize).fill().map(() => Array(mapSize).fill('path'));
+                m[0][0] = 'home';
+                m[0][1] = 'exit';
+                m[4][5] = 'shop';
+                for (let i = 0; i < 6; i++) {
+                    const rx = Math.floor(Math.random() * mapSize), ry = Math.floor(Math.random() * mapSize);
+                    if (m[ry][rx] === 'path') m[ry][rx] = 'monster';
+                }
+                return m;
+            }, [worldLevel]);
+
+            const generateQuiz = () => {
+                const pool = WORD_DATA;
+                const target = pool[Math.floor(Math.random() * pool.length)];
+                const isPinyinQuiz = Math.random() > 0.5;
+                let displayWord, correctAnswer, options;
+
+                if (isPinyinQuiz) {
+                    displayWord = target.context.replace("「　」", `「${target.char}」`);
+                    correctAnswer = target.pinyin;
+                    options = [target.pinyin];
+                    while (options.length < 4) {
+                        const rand = pool[Math.floor(Math.random() * pool.length)].pinyin;
+                        if (!options.includes(rand)) options.push(rand);
+                    }
+                } else {
+                    displayWord = target.context.replace("「　」", `「${target.pinyin}」`);
+                    correctAnswer = target.char;
+                    options = [target.char];
+                    while (options.length < 4) {
+                        const rand = pool[Math.floor(Math.random() * pool.length)].char;
+                        if (!options.includes(rand)) options.push(rand);
+                    }
+                }
+                setQuiz({
+                    question: displayWord,
+                    answer: correctAnswer,
+                    options: options.sort(() => Math.random() - 0.5)
+                });
+            };
+
+            const usePotion = () => {
+                if (player.potions > 0 && player.hp < player.maxHp) {
+                    setPlayer(prev => ({
+                        ...prev,
+                        potions: prev.potions - 1,
+                        hp: Math.min(prev.maxHp, prev.hp + 50)
+                    }));
+                    setBattleMsg('使用了藥丹，HP恢復 50！');
+                }
+            };
+
+            const handleLevelUp = (newExp) => {
+                // Lv1-5: 3題, Lv6-10+: 4題
+                const threshold = player.level <= 5 ? 3 : 4;
+                if (newExp >= threshold) {
+                    setShowLevelUp(true);
+                    setPlayer(prev => {
+                        const nextMaxHp = prev.maxHp + 10;
+                        return { ...prev, level: prev.level + 1, maxHp: nextMaxHp, hp: nextMaxHp, expCount: 0 };
+                    });
+                    setTimeout(() => setShowLevelUp(false), 1500);
+                } else {
+                    setPlayer(prev => ({ ...prev, expCount: newExp }));
+                }
+            };
+
+            const handleAnswer = (selected) => {
+                if (selected === quiz.answer) {
+                    const damage = 30 + player.level * 5;
+                    const nextHp = currentMonster.hp - damage;
+                    setBattleMsg('【正確！】發動攻擊！');
+                    setCurrentMonster(prev => ({ ...prev, hp: Math.max(0, nextHp) }));
+                    
+                    if (nextHp <= 0) {
+                        setPlayer(prev => ({ ...prev, gold: prev.gold + currentMonster.reward }));
+                        handleLevelUp(player.expCount + 1);
+                        setTimeout(() => setGameState('world_map'), 800);
+                    } else {
+                        setTimeout(generateQuiz, 600);
+                    }
+                } else {
+                    const penalty = 15; 
+                    const nextPlayerHp = player.hp - penalty;
+                    setPlayer(prev => ({ ...prev, hp: Math.max(0, nextPlayerHp) }));
+                    setBattleMsg(`【錯誤！】遭到反擊 (HP -${penalty})`);
+                    if (nextPlayerHp <= 0) {
+                        setTimeout(() => setGameState('game_over'), 800);
+                    } else {
+                        setTimeout(generateQuiz, 600);
+                    }
+                }
+            };
+
+            const move = (dx, dy) => {
+                const newX = Math.min(Math.max(0, player.pos.x + dx), mapSize - 1);
+                const newY = Math.min(Math.max(0, player.pos.y + dy), mapSize - 1);
+                setPlayer(prev => ({ ...prev, pos: { x: newX, y: newY } }));
+                const tile = worldMap[newY][newX];
+                if (tile === 'monster') {
+                    setCurrentMonster({ type: Math.min(3, worldLevel), hp: 40 + worldLevel * 15, reward: 10 + worldLevel * 5 });
+                    generateQuiz();
+                    setGameState('battle');
+                    setBattleMsg('點擊答案發動攻擊！');
+                }
+                else if (tile === 'shop') setGameState('shop');
+                else if (tile === 'exit') setGameState('start');
+            };
+
+            return (
+                <div className="w-full max-w-[400px] h-[720px] bg-white rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col border-[10px] border-slate-800">
+                    {/* Header */}
+                    {(gameState !== 'start' && gameState !== 'game_over') && (
+                        <div className="absolute top-8 left-6 right-6 z-20 flex justify-between items-center pointer-events-none">
+                            <div className="flex gap-2 items-center">
+                                <div className="bg-indigo-600 text-white px-3 py-1 rounded-xl shadow-lg flex flex-col items-center">
+                                    <span className="text-[10px] font-black opacity-80 leading-none">LV</span>
+                                    <span className="text-lg font-black">{player.level}</span>
+                                </div>
+                                <div className="bg-white/95 backdrop-blur p-1.5 rounded-2xl shadow-lg border border-slate-200 flex items-center gap-2">
+                                    <div className="w-20 h-4 bg-slate-200 rounded-full overflow-hidden">
+                                        <div className="h-full bg-rose-500 transition-all" style={{ width: `${(player.hp / player.maxHp) * 100}%` }} />
+                                    </div>
+                                    <span className="text-[10px] font-black text-rose-500">{player.hp}</span>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="bg-amber-100 px-3 py-1 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1.5">
+                                    <Icon name="coins" size={14} className="text-amber-500" />
+                                    <span className="font-black text-amber-700">{player.gold}</span>
+                                </div>
+                                <div className="bg-rose-100 px-3 py-1 rounded-2xl shadow-md border border-rose-200 flex items-center gap-1.5">
+                                    <Icon name="package" size={14} className="text-rose-500" />
+                                    <span className="font-black text-rose-700">{player.potions}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showLevelUp && (
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-indigo-600/95 text-white animate-fadeIn text-center">
+                            <Icon name="sparkles" size={80} className="mb-4 animate-bounce" />
+                            <h2 className="text-5xl font-black italic">LV UP!</h2>
+                            <p className="text-xl font-bold mt-2">能力獲得提升</p>
+                        </div>
+                    )}
+
+                    <div className="flex-1 flex flex-col pt-24 pb-4">
+                        {gameState === 'start' && (
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-b from-sky-400 to-indigo-600 text-white text-center">
+                                <div className="w-24 h-24 bg-white rounded-3xl mb-6 flex items-center justify-center shadow-2xl animate-bounce">
+                                    <Icon name="sword" size={60} className="text-sky-500" />
+                                </div>
+                                <h1 className="text-4xl font-black mb-2 tracking-tight">識字勇者冒險</h1>
+                                <p className="opacity-80 font-bold mb-10 text-sm">Lv1-5(3題升級) | Lv6+(4題升級)</p>
+                                <div className="w-full space-y-4">
+                                    {[1, 2, 3].map(lv => (
+                                        <button key={lv} onClick={() => { setWorldLevel(lv); setGameState('world_map'); }} className="w-full py-5 bg-white text-indigo-600 rounded-3xl font-black shadow-xl active:scale-95 transition-transform text-xl border-b-[6px] border-slate-200">
+                                            {lv === 1 ? '🌲 青翠森林' : lv === 2 ? '❄️ 寒冰山谷' : '🔥 烈火之殿'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {gameState === 'world_map' && (
+                            <div className="flex-1 flex flex-col bg-slate-100">
+                                <div className="flex-1 p-4">
+                                    <div className="grid grid-cols-6 gap-2 h-full bg-slate-200 p-2 rounded-[2rem] border-2 border-slate-300 shadow-inner">
+                                        {worldMap.map((row, y) => row.map((tile, x) => (
+                                            <div key={`${x}-${y}`} className={`aspect-square rounded-xl flex items-center justify-center relative transition-all border ${player.pos.x === x && player.pos.y === y ? 'bg-white border-sky-400 shadow-lg z-10 scale-110' : 'bg-slate-50 border-slate-200 shadow-sm'}`}>
+                                                {tile === 'home' && <Icon name="home" size={20} className="text-indigo-400" />}
+                                                {tile === 'exit' && <Icon name="door-open" size={18} className="text-emerald-500" />}
+                                                {tile === 'monster' && <Icon name="skull" size={18} className="text-rose-400 animate-pulse" />}
+                                                {tile === 'shop' && <Icon name="shopping-bag" size={20} className="text-amber-500" />}
+                                                {player.pos.x === x && player.pos.y === y && <div className="absolute inset-0 flex items-center justify-center"><div className="w-6 h-6 bg-sky-500 rounded-full border-2 border-white shadow-md animate-bounce"></div></div>}
+                                            </div>
+                                        )))}
+                                    </div>
+                                </div>
+
+                                <div className="h-44 flex items-center justify-between px-8 bg-white border-t-2 border-slate-200">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div />
+                                        <button onClick={() => move(0, -1)} className="w-14 h-12 bg-slate-100 rounded-xl shadow border-b-4 border-slate-300 flex items-center justify-center active:translate-y-1 active:border-b-0"><Icon name="chevron-up" size={28}/></button>
+                                        <div />
+                                        <button onClick={() => move(-1, 0)} className="w-14 h-12 bg-slate-100 rounded-xl shadow border-b-4 border-slate-300 flex items-center justify-center active:translate-y-1 active:border-b-0"><Icon name="chevron-left" size={28}/></button>
+                                        <button onClick={() => move(0, 1)} className="w-14 h-12 bg-slate-100 rounded-xl shadow border-b-4 border-slate-300 flex items-center justify-center active:translate-y-1 active:border-b-0"><Icon name="chevron-down" size={28}/></button>
+                                        <button onClick={() => move(1, 0)} className="w-14 h-12 bg-slate-100 rounded-xl shadow border-b-4 border-slate-300 flex items-center justify-center active:translate-y-1 active:border-b-0"><Icon name="chevron-right" size={28}/></button>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={usePotion} disabled={player.potions === 0} className={`w-28 py-3 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 border-b-4 transition-all ${player.potions > 0 ? 'bg-rose-500 text-white border-rose-700 active:translate-y-1 active:border-b-0' : 'bg-slate-300 text-slate-500 border-slate-400 opacity-50'}`}>
+                                            <Icon name="package" size={18}/> 藥丹
+                                        </button>
+                                        <button onClick={() => setGameState('start')} className="w-28 py-3 bg-slate-800 text-white rounded-2xl font-black text-sm border-b-4 border-slate-950 active:translate-y-1 active:border-b-0">
+                                            返回選單
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {gameState === 'battle' && quiz && (
+                            <div className="flex-1 flex flex-col p-6 bg-white animate-fadeIn">
+                                <div className="flex justify-between items-center mb-6 px-4">
+                                    <HeroSprite /><div className="text-slate-300 font-black italic text-xl tracking-widest">BATTLE</div><MonsterSprite type={currentMonster.type} />
+                                </div>
+                                <div className="w-full h-3 bg-slate-100 rounded-full border border-slate-200 overflow-hidden mb-6">
+                                    <div className="h-full bg-rose-500 transition-all" style={{ width: `${(currentMonster.hp / (40 + worldLevel * 15)) * 100}%` }} />
+                                </div>
+                                <div className="bg-slate-50 border-4 border-slate-100 p-8 rounded-[2.5rem] mb-6 text-center shadow-inner">
+                                    <div className="text-3xl font-black text-slate-800 leading-relaxed">{quiz.question}</div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    {quiz.options.map((opt, i) => (<button key={i} onClick={() => handleAnswer(opt)} className="py-6 bg-white border-2 border-slate-200 rounded-3xl font-black text-2xl text-indigo-600 shadow-md active:bg-indigo-600 active:text-white transition-all">{opt}</button>))}
+                                </div>
+                                <div className="flex gap-2 mt-auto">
+                                    <div className="flex-1 py-4 bg-indigo-50 text-indigo-600 rounded-2xl text-center font-bold text-sm">{battleMsg}</div>
+                                    <button onClick={usePotion} disabled={player.potions === 0} className={`px-6 rounded-2xl flex flex-col items-center justify-center border-b-4 ${player.potions > 0 ? 'bg-rose-500 text-white border-rose-700 active:translate-y-0.5 active:border-b-0' : 'bg-slate-200 text-slate-400 border-slate-300'}`}>
+                                        <Icon name="package" size={20} />
+                                        <span className="text-[10px] font-black">x{player.potions}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {gameState === 'shop' && (
+                            <div className="flex-1 flex flex-col p-10 bg-amber-50">
+                                <h2 className="text-3xl font-black mb-8 text-amber-700 flex items-center gap-3"><Icon name="shopping-bag" /> 神祕小舖</h2>
+                                <div className="bg-white p-6 rounded-[2.5rem] shadow-xl space-y-4 border-4 border-white">
+                                    <div className="flex items-center justify-between p-4 bg-rose-50 rounded-2xl">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-rose-500 p-2 rounded-xl text-white"><Icon name="package" /></div>
+                                            <div><div className="font-black text-lg text-slate-700">藥丹</div><div className="text-rose-600 font-bold">$20</div></div>
+                                        </div>
+                                        <button onClick={() => { if (player.gold >= 20) setPlayer(prev => ({ ...prev, gold: prev.gold - 20, potions: prev.potions + 1 })); }} className={`px-5 py-2.5 rounded-xl font-black transition-all ${player.gold >= 20 ? 'bg-amber-400 text-white shadow-lg active:scale-90' : 'bg-slate-200 text-slate-400'}`}>購買</button>
+                                    </div>
+                                </div>
+                                <button onClick={() => setGameState('world_map')} className="mt-auto w-full py-5 bg-amber-600 text-white rounded-3xl font-black text-xl shadow-xl active:scale-95">返回探險</button>
+                            </div>
+                        )}
+
+                        {gameState === 'game_over' && (
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-900 text-white animate-fadeIn text-center">
+                                <Icon name="skull" size={80} className="text-rose-500 mb-6" />
+                                <h2 className="text-5xl font-black mb-4 italic">挑戰結束</h2>
+                                <p className="opacity-60 font-bold mb-12 uppercase">Reach Level {player.level}</p>
+                                <button onClick={() => { setPlayer({ hp: 100, maxHp: 100, gold: 0, level: 1, expCount: 0, potions: 1, pos: { x: 0, y: 0 } }); setGameState('start'); }} className="w-full py-6 bg-rose-600 text-white rounded-[2rem] font-black text-2xl active:scale-95 shadow-[0_8px_0_rgb(153,27,27)]">重新挑戰</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
